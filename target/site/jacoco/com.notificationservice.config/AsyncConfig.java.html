@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AsyncConfig.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">notification-service</a> &gt; <a href="index.source.html" class="el_package">com.notificationservice.config</a> &gt; <span class="el_source">AsyncConfig.java</span></div><h1>AsyncConfig.java</h1><pre class="source lang-java linenums">package com.notificationservice.config;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+/**
+ * Virtual Threads configuration for Java 21.
+ *
+ * Spring Boot 3.2+ with spring.threads.virtual.enabled=true automatically
+ * applies virtual threads to:
+ *  - Tomcat request threads (every HTTP request runs on a virtual thread)
+ *  - @Async methods
+ *  - Spring's TaskExecutor
+ *
+ * Here we additionally provide a dedicated virtual thread executor for
+ * channel dispatch operations — I/O-bound work is ideal for virtual threads
+ * as they park (not block platform threads) during network I/O.
+ */
+@Configuration
+@EnableAsync
+@EnableScheduling
+<span class="nc" id="L26">public class AsyncConfig {</span>
+
+    /**
+     * Virtual thread executor for channel dispatching.
+     * Unlike platform thread pools, virtual threads are cheap — no pool size needed.
+     * We use a Semaphore in the dispatcher for concurrency bounding instead.
+     */
+    @Bean(name = &quot;channelDispatchExecutor&quot;)
+    public ExecutorService channelDispatchExecutor() {
+<span class="nc" id="L35">        return Executors.newVirtualThreadPerTaskExecutor();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

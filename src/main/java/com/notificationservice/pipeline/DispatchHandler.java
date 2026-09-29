@@ -24,14 +24,17 @@ public class DispatchHandler implements NotificationHandler {
     private final NotificationRequestRepository requestRepository;
     private final ChannelDispatcherFactory dispatcherFactory;
     private final ExecutorService channelDispatchExecutor;
+    private final com.notificationservice.channel.RetryAwareChannelDispatcher retryAwareDispatcher;
 
     public DispatchHandler(
             NotificationRequestRepository requestRepository,
             ChannelDispatcherFactory dispatcherFactory,
-            @Qualifier("channelDispatchExecutor") ExecutorService channelDispatchExecutor) {
+            @Qualifier("channelDispatchExecutor") ExecutorService channelDispatchExecutor,
+            com.notificationservice.channel.RetryAwareChannelDispatcher retryAwareDispatcher) {
         this.requestRepository    = requestRepository;
         this.dispatcherFactory    = dispatcherFactory;
         this.channelDispatchExecutor = channelDispatchExecutor;
+        this.retryAwareDispatcher = retryAwareDispatcher;
     }
 
     @Override
@@ -79,7 +82,9 @@ public class DispatchHandler implements NotificationHandler {
 
     private void submitForDispatch(NotificationRequest request) {
         NotificationDispatchCommand command = new NotificationDispatchCommand(
-                request, dispatcherFactory.getDispatcher(request.getChannel()));
+                request, 
+                dispatcherFactory.getDispatcher(request.getChannel()),
+                retryAwareDispatcher);
         channelDispatchExecutor.submit(command);
         log.debug("Submitted dispatch command for notificationId={}", request.getId());
     }

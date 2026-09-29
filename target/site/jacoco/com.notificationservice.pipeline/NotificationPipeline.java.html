@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>NotificationPipeline.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">notification-service</a> &gt; <a href="index.source.html" class="el_package">com.notificationservice.pipeline</a> &gt; <span class="el_source">NotificationPipeline.java</span></div><h1>NotificationPipeline.java</h1><pre class="source lang-java linenums">package com.notificationservice.pipeline;
+
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
+import java.util.Comparator;
+import java.util.List;
+
+/**
+ * Facade over the pipeline — assembles handlers in order and executes them.
+ * New handlers just need to implement NotificationHandler and be @Component.
+ * OCP: adding a new handler requires zero changes here.
+ */
+@Component
+@RequiredArgsConstructor
+public class NotificationPipeline {
+
+    private final List&lt;NotificationHandler&gt; handlers;
+
+    public void execute(NotificationContext context) {
+<span class="nc" id="L20">        List&lt;NotificationHandler&gt; orderedHandlers = handlers.stream()</span>
+<span class="nc" id="L21">                .sorted(Comparator.comparingInt(NotificationHandler::getOrder))</span>
+<span class="nc" id="L22">                .toList();</span>
+<span class="nc" id="L23">        new NotificationHandlerChain(orderedHandlers).next(context);</span>
+<span class="nc" id="L24">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

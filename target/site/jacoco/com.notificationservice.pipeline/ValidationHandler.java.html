@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ValidationHandler.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">notification-service</a> &gt; <a href="index.source.html" class="el_package">com.notificationservice.pipeline</a> &gt; <span class="el_source">ValidationHandler.java</span></div><h1>ValidationHandler.java</h1><pre class="source lang-java linenums">package com.notificationservice.pipeline;
+
+import com.notificationservice.domain.NotificationChannelConfig;
+import com.notificationservice.domain.NotificationTemplate;
+import com.notificationservice.domain.Tenant;
+import com.notificationservice.exception.TemplateNotFoundException;
+import com.notificationservice.exception.TenantNotFoundException;
+import com.notificationservice.repository.NotificationChannelConfigRepository;
+import com.notificationservice.repository.NotificationTemplateRepository;
+import com.notificationservice.repository.TenantRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
+
+/**
+ * Handler 1 — Validates the request:
+ * - Tenant exists
+ * - Template exists and belongs to the tenant
+ * - Channel config exists and is enabled
+ * - Template channel matches request channel
+ */
+@Component
+@RequiredArgsConstructor
+public class ValidationHandler implements NotificationHandler {
+
+    private final TenantRepository tenantRepository;
+    private final NotificationTemplateRepository templateRepository;
+    private final NotificationChannelConfigRepository channelConfigRepository;
+
+    @Override
+    public void handle(NotificationContext context, NotificationHandlerChain chain) {
+        // Resolve tenant
+<span class="fc" id="L32">        Tenant tenant = tenantRepository.findById(context.getTenantId())</span>
+<span class="fc" id="L33">                .orElseThrow(() -&gt; new TenantNotFoundException(&quot;Tenant not found: &quot; + context.getTenantId()));</span>
+<span class="fc" id="L34">        context.setTenant(tenant);</span>
+
+        // Resolve template
+<span class="fc" id="L37">        NotificationTemplate template = templateRepository</span>
+<span class="fc" id="L38">                .findByIdAndTenantId(context.getTemplateId(), context.getTenantId())</span>
+<span class="pc" id="L39">                .orElseThrow(() -&gt; new TemplateNotFoundException(</span>
+<span class="nc" id="L40">                        &quot;Template not found: &quot; + context.getTemplateId()));</span>
+
+<span class="pc bpc" id="L42" title="1 of 2 branches missed.">        if (!template.isActive()) {</span>
+<span class="nc" id="L43">            throw new IllegalStateException(&quot;Template is inactive: &quot; + template.getId());</span>
+        }
+
+<span class="fc bfc" id="L46" title="All 2 branches covered.">        if (template.getChannel() != context.getChannel()) {</span>
+<span class="fc" id="L47">            throw new IllegalArgumentException(</span>
+<span class="fc" id="L48">                    &quot;Template channel mismatch. Template: &quot; + template.getChannel() +</span>
+<span class="fc" id="L49">                    &quot;, Request: &quot; + context.getChannel());</span>
+        }
+<span class="fc" id="L51">        context.setTemplate(template);</span>
+
+        // Resolve channel config
+<span class="fc" id="L54">        NotificationChannelConfig channelConfig = channelConfigRepository</span>
+<span class="fc" id="L55">                .findByTenantIdAndChannel(context.getTenantId(), context.getChannel())</span>
+<span class="pc" id="L56">                .orElseThrow(() -&gt; new IllegalStateException(</span>
+<span class="nc" id="L57">                        &quot;No channel config for: &quot; + context.getChannel() +</span>
+                        &quot;. Please configure the channel first.&quot;));
+
+<span class="pc bpc" id="L60" title="1 of 2 branches missed.">        if (!channelConfig.isEnabled()) {</span>
+<span class="nc" id="L61">            throw new IllegalStateException(&quot;Channel is disabled: &quot; + context.getChannel());</span>
+        }
+<span class="fc" id="L63">        context.setChannelConfig(channelConfig);</span>
+
+<span class="fc" id="L65">        chain.next(context);</span>
+<span class="fc" id="L66">    }</span>
+
+    @Override
+<span class="nc" id="L69">    public int getOrder() { return 1; }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

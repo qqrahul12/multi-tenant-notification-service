@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>NotificationScheduler.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">notification-service</a> &gt; <a href="index.source.html" class="el_package">com.notificationservice.scheduler</a> &gt; <span class="el_source">NotificationScheduler.java</span></div><h1>NotificationScheduler.java</h1><pre class="source lang-java linenums">package com.notificationservice.scheduler;
+
+import com.notificationservice.channel.ChannelDispatcherFactory;
+import com.notificationservice.channel.RetryAwareChannelDispatcher;
+import com.notificationservice.command.NotificationDispatchCommand;
+import com.notificationservice.domain.NotificationRequest;
+import com.notificationservice.domain.NotificationStatus;
+import com.notificationservice.repository.NotificationRequestRepository;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+import java.time.Instant;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+
+/**
+ * Background scheduler for:
+ * 1. Dispatching PENDING notifications whose scheduledAt has arrived
+ * 2. Re-dispatching QUEUED notifications due for retry
+ *
+ * Uses PostgreSQL SKIP LOCKED (in repository queries) to prevent duplicate
+ * dispatch when multiple instances run concurrently — no external lock needed.
+ */
+@Component
+<span class="fc" id="L29">@Slf4j</span>
+public class NotificationScheduler {
+
+    private final NotificationRequestRepository requestRepository;
+    private final ChannelDispatcherFactory dispatcherFactory;
+    private final RetryAwareChannelDispatcher retryAwareDispatcher;
+    private final ExecutorService channelDispatchExecutor;
+    private final int batchSize;
+
+    public NotificationScheduler(
+            NotificationRequestRepository requestRepository,
+            ChannelDispatcherFactory dispatcherFactory,
+            RetryAwareChannelDispatcher retryAwareDispatcher,
+            @Qualifier(&quot;channelDispatchExecutor&quot;) ExecutorService channelDispatchExecutor,
+<span class="fc" id="L43">            @Value(&quot;${notification.scheduler.batch-size:100}&quot;) int batchSize) {</span>
+<span class="fc" id="L44">        this.requestRepository    = requestRepository;</span>
+<span class="fc" id="L45">        this.dispatcherFactory    = dispatcherFactory;</span>
+<span class="fc" id="L46">        this.retryAwareDispatcher = retryAwareDispatcher;</span>
+<span class="fc" id="L47">        this.channelDispatchExecutor = channelDispatchExecutor;</span>
+<span class="fc" id="L48">        this.batchSize = batchSize;</span>
+<span class="fc" id="L49">    }</span>
+
+    /**
+     * Poll for scheduled notifications due for dispatch.
+     * fixedDelay ensures the next run starts after the previous finishes (not overlapping).
+     */
+    @Scheduled(fixedDelayString = &quot;${notification.scheduler.poll-interval-ms:30000}&quot;)
+    @Transactional
+    public void dispatchScheduledNotifications() {
+<span class="fc" id="L58">        Instant now = Instant.now();</span>
+<span class="fc" id="L59">        List&lt;NotificationRequest&gt; pending = requestRepository.findPendingForDispatch(now, batchSize);</span>
+
+<span class="pc bpc" id="L61" title="1 of 2 branches missed.">        if (!pending.isEmpty()) {</span>
+<span class="fc" id="L62">            log.info(&quot;Scheduler: found {} pending notifications to dispatch&quot;, pending.size());</span>
+        }
+
+<span class="fc bfc" id="L65" title="All 2 branches covered.">        for (NotificationRequest request : pending) {</span>
+            try {
+<span class="fc" id="L67">                request.transitionTo(NotificationStatus.QUEUED);</span>
+<span class="fc" id="L68">                requestRepository.save(request);</span>
+<span class="fc" id="L69">                submitForDispatch(request);</span>
+<span class="nc" id="L70">            } catch (Exception e) {</span>
+<span class="nc" id="L71">                log.error(&quot;Scheduler: failed to submit notificationId={}: {}&quot;,</span>
+<span class="nc" id="L72">                        request.getId(), e.getMessage(), e);</span>
+<span class="fc" id="L73">            }</span>
+<span class="fc" id="L74">        }</span>
+<span class="fc" id="L75">    }</span>
+
+    /**
+     * Poll for QUEUED notifications with failed attempts due for retry.
+     */
+    @Scheduled(fixedDelayString = &quot;${notification.scheduler.poll-interval-ms:30000}&quot;)
+    @Transactional
+    public void retryFailedNotifications() {
+<span class="nc" id="L83">        Instant now = Instant.now();</span>
+<span class="nc" id="L84">        List&lt;NotificationRequest&gt; dueForRetry = requestRepository.findDueForRetry(now, batchSize);</span>
+
+<span class="nc bnc" id="L86" title="All 2 branches missed.">        if (!dueForRetry.isEmpty()) {</span>
+<span class="nc" id="L87">            log.info(&quot;Scheduler: found {} notifications due for retry&quot;, dueForRetry.size());</span>
+        }
+
+<span class="nc bnc" id="L90" title="All 2 branches missed.">        for (NotificationRequest request : dueForRetry) {</span>
+            try {
+<span class="nc" id="L92">                submitForDispatch(request);</span>
+<span class="nc" id="L93">            } catch (Exception e) {</span>
+<span class="nc" id="L94">                log.error(&quot;Scheduler: failed to re-submit notificationId={}: {}&quot;,</span>
+<span class="nc" id="L95">                        request.getId(), e.getMessage(), e);</span>
+<span class="nc" id="L96">            }</span>
+<span class="nc" id="L97">        }</span>
+<span class="nc" id="L98">    }</span>
+
+    private void submitForDispatch(NotificationRequest request) {
+<span class="fc" id="L101">        var command = new NotificationDispatchCommand(</span>
+                request,
+<span class="fc" id="L103">                dispatcherFactory.getDispatcher(request.getChannel()),</span>
+                retryAwareDispatcher);
+<span class="fc" id="L105">        channelDispatchExecutor.submit(command);</span>
+<span class="fc" id="L106">        log.debug(&quot;Scheduler: submitted notificationId={}&quot;, request.getId());</span>
+<span class="fc" id="L107">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>DispatchHandler.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">notification-service</a> &gt; <a href="index.source.html" class="el_package">com.notificationservice.pipeline</a> &gt; <span class="el_source">DispatchHandler.java</span></div><h1>DispatchHandler.java</h1><pre class="source lang-java linenums">package com.notificationservice.pipeline;
+
+import com.notificationservice.channel.ChannelDispatcherFactory;
+import com.notificationservice.command.NotificationDispatchCommand;
+import com.notificationservice.domain.*;
+import com.notificationservice.repository.NotificationRequestRepository;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
+import java.time.Instant;
+import java.util.concurrent.ExecutorService;
+
+/**
+ * Handler 6 (final) — Persists the NotificationRequest and dispatches it.
+ *
+ * For immediate sends: submits a NotificationDispatchCommand to the virtual thread executor.
+ * For scheduled sends: persists with PENDING status; the scheduler picks it up later.
+ */
+@Component
+<span class="fc" id="L21">@Slf4j</span>
+public class DispatchHandler implements NotificationHandler {
+
+    private final NotificationRequestRepository requestRepository;
+    private final ChannelDispatcherFactory dispatcherFactory;
+    private final ExecutorService channelDispatchExecutor;
+    private final com.notificationservice.channel.RetryAwareChannelDispatcher retryAwareDispatcher;
+
+    public DispatchHandler(
+            NotificationRequestRepository requestRepository,
+            ChannelDispatcherFactory dispatcherFactory,
+            @Qualifier(&quot;channelDispatchExecutor&quot;) ExecutorService channelDispatchExecutor,
+<span class="fc" id="L33">            com.notificationservice.channel.RetryAwareChannelDispatcher retryAwareDispatcher) {</span>
+<span class="fc" id="L34">        this.requestRepository    = requestRepository;</span>
+<span class="fc" id="L35">        this.dispatcherFactory    = dispatcherFactory;</span>
+<span class="fc" id="L36">        this.channelDispatchExecutor = channelDispatchExecutor;</span>
+<span class="fc" id="L37">        this.retryAwareDispatcher = retryAwareDispatcher;</span>
+<span class="fc" id="L38">    }</span>
+
+    @Override
+    public void handle(NotificationContext context, NotificationHandlerChain chain) {
+        // Persist
+<span class="fc" id="L43">        NotificationRequest request = buildRequest(context);</span>
+<span class="fc" id="L44">        request = requestRepository.save(request);</span>
+<span class="fc" id="L45">        context.setSavedRequest(request);</span>
+
+<span class="fc" id="L47">        log.info(&quot;NotificationRequest persisted: id={} channel={} scheduled={}&quot;,</span>
+<span class="fc" id="L48">                request.getId(), request.getChannel(), request.getScheduledAt());</span>
+
+        // Dispatch
+<span class="fc bfc" id="L51" title="All 2 branches covered.">        if (request.isImmediate()) {</span>
+<span class="fc" id="L52">            submitForDispatch(request);</span>
+<span class="fc" id="L53">            request.transitionTo(NotificationStatus.QUEUED);</span>
+<span class="fc" id="L54">            requestRepository.save(request);</span>
+        }
+        // Scheduled: leave as PENDING — scheduler will pick it up
+
+<span class="fc" id="L58">        chain.next(context);</span>
+<span class="fc" id="L59">    }</span>
+
+    @Override
+<span class="nc" id="L62">    public int getOrder() { return 6; }</span>
+
+    private NotificationRequest buildRequest(NotificationContext ctx) {
+<span class="fc bfc" id="L65" title="All 2 branches covered.">        Instant scheduledAt = ctx.getScheduledAt() != null</span>
+<span class="fc" id="L66">                ? Instant.parse(ctx.getScheduledAt()) : null;</span>
+
+<span class="fc" id="L68">        return NotificationRequest.builder()</span>
+<span class="fc" id="L69">                .tenantId(ctx.getTenantId())</span>
+<span class="fc" id="L70">                .templateId(ctx.getTemplateId())</span>
+<span class="fc" id="L71">                .recipientAddress(ctx.getRecipientAddress())</span>
+<span class="fc" id="L72">                .variables(ctx.getVariables())</span>
+<span class="fc" id="L73">                .channel(ctx.getChannel())</span>
+<span class="pc bpc" id="L74" title="1 of 2 branches missed.">                .priority(ctx.getPriority() != null ? ctx.getPriority() : Priority.NORMAL)</span>
+<span class="fc" id="L75">                .scheduledAt(scheduledAt)</span>
+<span class="fc" id="L76">                .idempotencyKey(ctx.getIdempotencyKey())</span>
+<span class="fc" id="L77">                .renderedSubject(ctx.getRenderedSubject())</span>
+<span class="fc" id="L78">                .renderedBody(ctx.getRenderedBody())</span>
+<span class="fc" id="L79">                .createdBy(ctx.getCreatedBy())</span>
+<span class="fc" id="L80">                .build();</span>
+    }
+
+    private void submitForDispatch(NotificationRequest request) {
+<span class="fc" id="L84">        NotificationDispatchCommand command = new NotificationDispatchCommand(</span>
+                request, 
+<span class="fc" id="L86">                dispatcherFactory.getDispatcher(request.getChannel()),</span>
+                retryAwareDispatcher);
+<span class="fc" id="L88">        channelDispatchExecutor.submit(command);</span>
+<span class="fc" id="L89">        log.debug(&quot;Submitted dispatch command for notificationId={}&quot;, request.getId());</span>
+<span class="fc" id="L90">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

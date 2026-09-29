@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EmailChannelDispatcher.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">notification-service</a> &gt; <a href="index.source.html" class="el_package">com.notificationservice.channel</a> &gt; <span class="el_source">EmailChannelDispatcher.java</span></div><h1>EmailChannelDispatcher.java</h1><pre class="source lang-java linenums">package com.notificationservice.channel;
+
+import com.notificationservice.domain.Channel;
+import com.notificationservice.domain.NotificationRequest;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+import java.util.Random;
+
+/**
+ * Mock Email channel dispatcher.
+ * In production: replace doSend() with real SendGrid/SES/Mailgun API call.
+ * Configurable failure rate for testing retry logic.
+ */
+@Component
+<span class="nc" id="L16">@Slf4j</span>
+<span class="nc" id="L17">public class EmailChannelDispatcher extends AbstractChannelDispatcher {</span>
+
+    @Value(&quot;${notification.channel.email.failure-rate:0.1}&quot;)
+    private double failureRate;
+
+<span class="nc" id="L22">    private final Random random = new Random();</span>
+
+    @Override
+    protected String doSend(NotificationRequest request) {
+<span class="nc" id="L26">        simulateFailure(&quot;EMAIL&quot;);</span>
+
+        // Simulate API call latency (virtual threads park here — no platform thread blocked)
+<span class="nc" id="L29">        simulateNetworkLatency(100, 300);</span>
+
+<span class="nc" id="L31">        log.info(&quot;[EMAIL] Sent to={} subject={}&quot;,</span>
+<span class="nc" id="L32">                request.getRecipientAddress(), request.getRenderedSubject());</span>
+
+<span class="nc" id="L34">        return &quot;EMAIL_PROVIDER_MSG_ID_&quot; + System.currentTimeMillis();</span>
+    }
+
+    @Override
+<span class="nc" id="L38">    public Channel getSupportedChannel() { return Channel.EMAIL; }</span>
+
+    private void simulateFailure(String channel) {
+<span class="nc bnc" id="L41" title="All 2 branches missed.">        if (random.nextDouble() &lt; failureRate) {</span>
+<span class="nc" id="L42">            throw new TransientChannelException(</span>
+                    &quot;[&quot; + channel + &quot;] Simulated transient failure (connection timeout)&quot;);
+        }
+<span class="nc" id="L45">    }</span>
+
+    private void simulateNetworkLatency(int minMs, int maxMs) {
+        try {
+<span class="nc" id="L49">            Thread.sleep(minMs + random.nextInt(maxMs - minMs));</span>
+<span class="nc" id="L50">        } catch (InterruptedException e) {</span>
+<span class="nc" id="L51">            Thread.currentThread().interrupt();</span>
+<span class="nc" id="L52">        }</span>
+<span class="nc" id="L53">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

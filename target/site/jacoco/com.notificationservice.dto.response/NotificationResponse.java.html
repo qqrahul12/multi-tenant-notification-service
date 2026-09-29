@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>NotificationResponse.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">notification-service</a> &gt; <a href="index.source.html" class="el_package">com.notificationservice.dto.response</a> &gt; <span class="el_source">NotificationResponse.java</span></div><h1>NotificationResponse.java</h1><pre class="source lang-java linenums">package com.notificationservice.dto.response;
+
+import com.notificationservice.domain.*;
+import lombok.Builder;
+import lombok.Data;
+import java.time.Instant;
+import java.util.UUID;
+
+@Data
+@Builder
+public class NotificationResponse {
+    private UUID id;
+    private UUID tenantId;
+    private UUID templateId;
+    private String recipientAddress;
+    private Channel channel;
+    private Priority priority;
+    private NotificationStatus status;
+    private String idempotencyKey;
+    private Instant scheduledAt;
+    private int attemptCount;
+    private Instant createdAt;
+    private Instant updatedAt;
+    private boolean isDuplicate;  // true if returned from idempotency cache
+
+    public static NotificationResponse from(NotificationRequest req) {
+<span class="fc" id="L27">        return NotificationResponse.builder()</span>
+<span class="fc" id="L28">                .id(req.getId())</span>
+<span class="fc" id="L29">                .tenantId(req.getTenantId())</span>
+<span class="fc" id="L30">                .templateId(req.getTemplateId())</span>
+<span class="fc" id="L31">                .recipientAddress(req.getRecipientAddress())</span>
+<span class="fc" id="L32">                .channel(req.getChannel())</span>
+<span class="fc" id="L33">                .priority(req.getPriority())</span>
+<span class="fc" id="L34">                .status(req.getStatus())</span>
+<span class="fc" id="L35">                .idempotencyKey(req.getIdempotencyKey())</span>
+<span class="fc" id="L36">                .scheduledAt(req.getScheduledAt())</span>
+<span class="fc" id="L37">                .attemptCount(req.getAttemptCount())</span>
+<span class="fc" id="L38">                .createdAt(req.getCreatedAt())</span>
+<span class="fc" id="L39">                .updatedAt(req.getUpdatedAt())</span>
+<span class="fc" id="L40">                .build();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

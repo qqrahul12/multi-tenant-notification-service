@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>NotificationStatus.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">notification-service</a> &gt; <a href="index.source.html" class="el_package">com.notificationservice.domain</a> &gt; <span class="el_source">NotificationStatus.java</span></div><h1>NotificationStatus.java</h1><pre class="source lang-java linenums">package com.notificationservice.domain;
+
+import com.notificationservice.exception.InvalidStateTransitionException;
+import java.util.Map;
+import java.util.Set;
+
+/**
+ * State machine for notification lifecycle.
+ * Pattern: State — guards illegal transitions, documents valid flow.
+ *
+ *  PENDING ──► QUEUED ──► DISPATCHED ──► DELIVERED
+ *    │            │             │
+ *    │            │             └──► QUEUED (retry scheduled)
+ *    │            │             └──► FAILED (max retries)
+ *    └──► CANCELLED ◄── QUEUED
+ */
+<span class="fc" id="L17">public enum NotificationStatus {</span>
+<span class="fc" id="L18">    PENDING, QUEUED, DISPATCHED, DELIVERED, FAILED, CANCELLED;</span>
+
+<span class="fc" id="L20">    private static final Map&lt;NotificationStatus, Set&lt;NotificationStatus&gt;&gt; VALID_TRANSITIONS = Map.of(</span>
+<span class="fc" id="L21">        PENDING,    Set.of(QUEUED, CANCELLED),</span>
+<span class="fc" id="L22">        QUEUED,     Set.of(DISPATCHED, CANCELLED, FAILED),</span>
+<span class="fc" id="L23">        DISPATCHED, Set.of(DELIVERED, QUEUED, FAILED),</span>
+<span class="fc" id="L24">        DELIVERED,  Set.of(),   // terminal</span>
+<span class="fc" id="L25">        FAILED,     Set.of(),   // terminal</span>
+<span class="fc" id="L26">        CANCELLED,  Set.of()    // terminal</span>
+    );
+
+    public boolean canTransitionTo(NotificationStatus next) {
+<span class="fc" id="L30">        return VALID_TRANSITIONS.getOrDefault(this, Set.of()).contains(next);</span>
+    }
+
+    public void assertCanTransitionTo(NotificationStatus next) {
+<span class="pc bpc" id="L34" title="1 of 2 branches missed.">        if (!canTransitionTo(next)) {</span>
+<span class="nc" id="L35">            throw new InvalidStateTransitionException(</span>
+<span class="nc" id="L36">                String.format(&quot;Cannot transition from %s to %s&quot;, this, next));</span>
+        }
+<span class="fc" id="L38">    }</span>
+
+    public boolean isTerminal() {
+<span class="nc bnc" id="L41" title="All 6 branches missed.">        return this == DELIVERED || this == FAILED || this == CANCELLED;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

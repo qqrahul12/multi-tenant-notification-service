@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>NotificationDetailResponse.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">notification-service</a> &gt; <a href="index.source.html" class="el_package">com.notificationservice.dto.response</a> &gt; <span class="el_source">NotificationDetailResponse.java</span></div><h1>NotificationDetailResponse.java</h1><pre class="source lang-java linenums">package com.notificationservice.dto.response;
+
+import com.notificationservice.domain.*;
+import lombok.Builder;
+import lombok.Data;
+import java.time.Instant;
+import java.util.List;
+import java.util.UUID;
+
+@Data
+@Builder
+public class NotificationDetailResponse {
+    private UUID id;
+    private UUID tenantId;
+    private UUID templateId;
+    private String recipientAddress;
+    private Channel channel;
+    private Priority priority;
+    private NotificationStatus status;
+    private String idempotencyKey;
+    private Instant scheduledAt;
+    private String renderedSubject;
+    private String renderedBody;
+    private int attemptCount;
+    private int maxAttempts;
+    private Instant createdAt;
+    private Instant updatedAt;
+    private List&lt;DeliveryAttemptResponse&gt; deliveryHistory;
+
+    @Data
+    @Builder
+    public static class DeliveryAttemptResponse {
+        private UUID id;
+        private int attemptNumber;
+        private AttemptStatus status;
+        private String errorCode;
+        private String errorMessage;
+        private String providerResponse;
+        private Instant nextRetryAt;
+        private Instant attemptedAt;
+
+        public static DeliveryAttemptResponse from(DeliveryAttempt a) {
+<span class="nc" id="L43">            return DeliveryAttemptResponse.builder()</span>
+<span class="nc" id="L44">                    .id(a.getId())</span>
+<span class="nc" id="L45">                    .attemptNumber(a.getAttemptNumber())</span>
+<span class="nc" id="L46">                    .status(a.getStatus())</span>
+<span class="nc" id="L47">                    .errorCode(a.getErrorCode())</span>
+<span class="nc" id="L48">                    .errorMessage(a.getErrorMessage())</span>
+<span class="nc" id="L49">                    .providerResponse(a.getProviderResponse())</span>
+<span class="nc" id="L50">                    .nextRetryAt(a.getNextRetryAt())</span>
+<span class="nc" id="L51">                    .attemptedAt(a.getAttemptedAt())</span>
+<span class="nc" id="L52">                    .build();</span>
+        }
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

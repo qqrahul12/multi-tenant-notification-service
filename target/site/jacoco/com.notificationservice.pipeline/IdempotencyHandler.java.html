@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>IdempotencyHandler.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">notification-service</a> &gt; <a href="index.source.html" class="el_package">com.notificationservice.pipeline</a> &gt; <span class="el_source">IdempotencyHandler.java</span></div><h1>IdempotencyHandler.java</h1><pre class="source lang-java linenums">package com.notificationservice.pipeline;
+
+import com.notificationservice.idempotency.IdempotencyStore;
+import com.notificationservice.repository.NotificationRequestRepository;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
+import java.util.Optional;
+import java.util.UUID;
+
+/**
+ * Handler 3 — Idempotency check using Redis SET NX.
+ *
+ * If the idempotency key is already claimed in Redis:
+ *   - Sets context.duplicate = true
+ *   - Sets context.existingNotificationId
+ *   - Short-circuits the pipeline (does NOT call chain.next)
+ *
+ * If key is new: claims it in Redis and proceeds.
+ */
+@Component
+@RequiredArgsConstructor
+<span class="fc" id="L24">@Slf4j</span>
+public class IdempotencyHandler implements NotificationHandler {
+
+    private final IdempotencyStore idempotencyStore;
+
+    @Override
+    public void handle(NotificationContext context, NotificationHandlerChain chain) {
+<span class="fc" id="L31">        String idempotencyKey = context.getIdempotencyKey();</span>
+
+<span class="fc bfc" id="L33" title="All 2 branches covered.">        if (!StringUtils.hasText(idempotencyKey)) {</span>
+            // No idempotency key provided — proceed without dedup check
+<span class="fc" id="L35">            chain.next(context);</span>
+<span class="fc" id="L36">            return;</span>
+        }
+
+<span class="fc" id="L39">        String redisKey = buildRedisKey(context.getTenantId(), idempotencyKey);</span>
+<span class="fc" id="L40">        Optional&lt;UUID&gt; existing = idempotencyStore.get(redisKey);</span>
+
+<span class="fc bfc" id="L42" title="All 2 branches covered.">        if (existing.isPresent()) {</span>
+            // Already processed — short-circuit, return existing result
+<span class="fc" id="L44">            log.info(&quot;Duplicate request detected for idempotency key: {}&quot;, idempotencyKey);</span>
+<span class="fc" id="L45">            context.setDuplicate(true);</span>
+<span class="fc" id="L46">            context.setExistingNotificationId(existing.get());</span>
+            // Do NOT call chain.next() — pipeline stops here
+<span class="fc" id="L48">            return;</span>
+        }
+
+        // Claim a placeholder UUID (will be updated with real ID after persist)
+<span class="fc" id="L52">        UUID tempId = UUID.randomUUID();</span>
+<span class="fc" id="L53">        boolean claimed = idempotencyStore.claim(redisKey, tempId);</span>
+
+<span class="pc bpc" id="L55" title="1 of 2 branches missed.">        if (!claimed) {</span>
+            // Race condition — another request claimed it simultaneously
+<span class="nc" id="L57">            Optional&lt;UUID&gt; raceExisting = idempotencyStore.get(redisKey);</span>
+<span class="nc" id="L58">            context.setDuplicate(true);</span>
+<span class="nc" id="L59">            context.setExistingNotificationId(raceExisting.orElse(null));</span>
+<span class="nc" id="L60">            return;</span>
+        }
+
+<span class="fc" id="L63">        chain.next(context);</span>
+
+        // After pipeline: update Redis with the real notification ID
+<span class="pc bpc" id="L66" title="1 of 2 branches missed.">        if (context.getSavedRequest() != null) {</span>
+<span class="nc" id="L67">            idempotencyStore.release(redisKey);</span>
+<span class="nc" id="L68">            idempotencyStore.claim(redisKey, context.getSavedRequest().getId());</span>
+        }
+<span class="fc" id="L70">    }</span>
+
+    @Override
+<span class="nc" id="L73">    public int getOrder() { return 3; }</span>
+
+    private String buildRedisKey(UUID tenantId, String key) {
+<span class="fc" id="L76">        return tenantId + &quot;:&quot; + key;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

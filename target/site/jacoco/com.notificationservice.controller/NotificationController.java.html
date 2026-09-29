@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>NotificationController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">notification-service</a> &gt; <a href="index.source.html" class="el_package">com.notificationservice.controller</a> &gt; <span class="el_source">NotificationController.java</span></div><h1>NotificationController.java</h1><pre class="source lang-java linenums">package com.notificationservice.controller;
+
+import com.notificationservice.domain.NotificationStatus;
+import com.notificationservice.dto.request.BulkNotificationRequest;
+import com.notificationservice.dto.request.SendNotificationRequest;
+import com.notificationservice.dto.response.ApiResponse;
+import com.notificationservice.dto.response.NotificationDetailResponse;
+import com.notificationservice.dto.response.NotificationResponse;
+import com.notificationservice.security.SecurityContextHelper;
+import com.notificationservice.service.NotificationService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+import java.util.List;
+import java.util.UUID;
+
+@RestController
+@RequestMapping(&quot;/api/v1/notifications&quot;)
+@RequiredArgsConstructor
+@Tag(name = &quot;Notifications&quot;, description = &quot;Tenant Admin — send and manage notifications&quot;)
+@SecurityRequirement(name = &quot;bearerAuth&quot;)
+public class NotificationController {
+
+    private final NotificationService notificationService;
+    private final SecurityContextHelper securityHelper;
+
+    @PostMapping(&quot;/send&quot;)
+    @PreAuthorize(&quot;hasRole('TENANT_ADMIN')&quot;)
+    @Operation(summary = &quot;Send or schedule a single notification (supports idempotency)&quot;)
+    public ResponseEntity&lt;ApiResponse&lt;NotificationResponse&gt;&gt; send(
+            @Valid @RequestBody SendNotificationRequest req) {
+<span class="nc" id="L40">        UUID tenantId = securityHelper.getCurrentTenantId();</span>
+<span class="nc" id="L41">        UUID userId = securityHelper.getCurrentUserId();</span>
+<span class="nc" id="L42">        NotificationResponse response = notificationService.send(tenantId, userId, req);</span>
+        
+<span class="nc bnc" id="L44" title="All 2 branches missed.">        HttpStatus status = response.isDuplicate() ? HttpStatus.OK : HttpStatus.CREATED;</span>
+<span class="nc" id="L45">        return ResponseEntity.status(status).body(ApiResponse.success(response));</span>
+    }
+
+    @PostMapping(&quot;/bulk&quot;)
+    @PreAuthorize(&quot;hasRole('TENANT_ADMIN')&quot;)
+    @Operation(summary = &quot;Send multiple notifications in bulk&quot;)
+    public ResponseEntity&lt;ApiResponse&lt;List&lt;NotificationResponse&gt;&gt;&gt; sendBulk(
+            @Valid @RequestBody BulkNotificationRequest req) {
+<span class="nc" id="L53">        UUID tenantId = securityHelper.getCurrentTenantId();</span>
+<span class="nc" id="L54">        UUID userId = securityHelper.getCurrentUserId();</span>
+<span class="nc" id="L55">        return ResponseEntity.status(HttpStatus.CREATED)</span>
+<span class="nc" id="L56">                .body(ApiResponse.success(notificationService.sendBulk(tenantId, userId, req)));</span>
+    }
+
+    @GetMapping
+    @PreAuthorize(&quot;hasRole('TENANT_ADMIN')&quot;)
+    @Operation(summary = &quot;List notifications (paginated, optional status filter)&quot;)
+    public ResponseEntity&lt;ApiResponse&lt;Page&lt;NotificationResponse&gt;&gt;&gt; list(
+            @RequestParam(required = false) NotificationStatus status,
+            Pageable pageable) {
+<span class="nc" id="L65">        UUID tenantId = securityHelper.getCurrentTenantId();</span>
+<span class="nc" id="L66">        return ResponseEntity.ok(ApiResponse.success(</span>
+<span class="nc" id="L67">                notificationService.list(tenantId, status, pageable)));</span>
+    }
+
+    @GetMapping(&quot;/{id}&quot;)
+    @PreAuthorize(&quot;hasRole('TENANT_ADMIN')&quot;)
+    @Operation(summary = &quot;Get detailed notification status and delivery history&quot;)
+    public ResponseEntity&lt;ApiResponse&lt;NotificationDetailResponse&gt;&gt; getDetail(@PathVariable UUID id) {
+<span class="nc" id="L74">        UUID tenantId = securityHelper.getCurrentTenantId();</span>
+<span class="nc" id="L75">        return ResponseEntity.ok(ApiResponse.success(notificationService.getDetail(tenantId, id)));</span>
+    }
+
+    @DeleteMapping(&quot;/{id}&quot;)
+    @PreAuthorize(&quot;hasRole('TENANT_ADMIN')&quot;)
+    @Operation(summary = &quot;Cancel a scheduled or pending notification&quot;)
+    public ResponseEntity&lt;Void&gt; cancel(@PathVariable UUID id) {
+<span class="nc" id="L82">        UUID tenantId = securityHelper.getCurrentTenantId();</span>
+<span class="nc" id="L83">        notificationService.cancel(tenantId, id);</span>
+<span class="nc" id="L84">        return ResponseEntity.noContent().build();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

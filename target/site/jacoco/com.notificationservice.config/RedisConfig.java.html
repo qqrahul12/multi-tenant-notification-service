@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>RedisConfig.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">notification-service</a> &gt; <a href="index.source.html" class="el_package">com.notificationservice.config</a> &gt; <span class="el_source">RedisConfig.java</span></div><h1>RedisConfig.java</h1><pre class="source lang-java linenums">package com.notificationservice.config;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.data.redis.cache.RedisCacheConfiguration;
+import org.springframework.data.redis.cache.RedisCacheManager;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
+import org.springframework.data.redis.serializer.RedisSerializationContext;
+import org.springframework.data.redis.serializer.StringRedisSerializer;
+import java.time.Duration;
+import java.util.Map;
+
+@Configuration
+<span class="nc" id="L16">public class RedisConfig {</span>
+
+    @Bean
+    public RedisTemplate&lt;String, Object&gt; redisTemplate(RedisConnectionFactory factory) {
+<span class="nc" id="L20">        RedisTemplate&lt;String, Object&gt; template = new RedisTemplate&lt;&gt;();</span>
+<span class="nc" id="L21">        template.setConnectionFactory(factory);</span>
+<span class="nc" id="L22">        template.setKeySerializer(new StringRedisSerializer());</span>
+<span class="nc" id="L23">        template.setValueSerializer(new GenericJackson2JsonRedisSerializer());</span>
+<span class="nc" id="L24">        template.setHashKeySerializer(new StringRedisSerializer());</span>
+<span class="nc" id="L25">        template.setHashValueSerializer(new GenericJackson2JsonRedisSerializer());</span>
+<span class="nc" id="L26">        template.afterPropertiesSet();</span>
+<span class="nc" id="L27">        return template;</span>
+    }
+
+    @Bean
+    public RedisCacheManager cacheManager(RedisConnectionFactory factory) {
+<span class="nc" id="L32">        RedisCacheConfiguration defaultConfig = RedisCacheConfiguration.defaultCacheConfig()</span>
+<span class="nc" id="L33">                .entryTtl(Duration.ofMinutes(5))</span>
+<span class="nc" id="L34">                .serializeKeysWith(RedisSerializationContext.SerializationPair</span>
+<span class="nc" id="L35">                        .fromSerializer(new StringRedisSerializer()))</span>
+<span class="nc" id="L36">                .serializeValuesWith(RedisSerializationContext.SerializationPair</span>
+<span class="nc" id="L37">                        .fromSerializer(new GenericJackson2JsonRedisSerializer()))</span>
+<span class="nc" id="L38">                .disableCachingNullValues();</span>
+
+<span class="nc" id="L40">        return RedisCacheManager.builder(factory)</span>
+<span class="nc" id="L41">                .cacheDefaults(defaultConfig)</span>
+<span class="nc" id="L42">                .withInitialCacheConfigurations(Map.of(</span>
+<span class="nc" id="L43">                        &quot;tenants&quot;,         defaultConfig.entryTtl(Duration.ofMinutes(10)),</span>
+<span class="nc" id="L44">                        &quot;templates&quot;,       defaultConfig.entryTtl(Duration.ofMinutes(10)),</span>
+<span class="nc" id="L45">                        &quot;channelConfigs&quot;,  defaultConfig.entryTtl(Duration.ofMinutes(5)),</span>
+<span class="nc" id="L46">                        &quot;rateLimitConfig&quot;, defaultConfig.entryTtl(Duration.ofMinutes(5))</span>
+                ))
+<span class="nc" id="L48">                .build();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>
