@@ -5,33 +5,33 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
-/**
- * Virtual Threads configuration for Java 21.
- *
- * Spring Boot 3.2+ with spring.threads.virtual.enabled=true automatically
- * applies virtual threads to:
- *  - Tomcat request threads (every HTTP request runs on a virtual thread)
- *  - @Async methods
- *  - Spring's TaskExecutor
- *
- * Here we additionally provide a dedicated virtual thread executor for
- * channel dispatch operations — I/O-bound work is ideal for virtual threads
- * as they park (not block platform threads) during network I/O.
- */
 @Configuration
 @EnableAsync
 @EnableScheduling
 public class AsyncConfig {
 
     /**
-     * Virtual thread executor for channel dispatching.
-     * Unlike platform thread pools, virtual threads are cheap — no pool size needed.
-     * We use a Semaphore in the dispatcher for concurrency bounding instead.
+     * Bounded ThreadPoolExecutor for channel dispatching as per assignment requirements:
+     * "dispatch high volumes of notifications across channels concurrently using bounded worker pools".
+     *
+     * Core Size: 50
+     * Max Size: 50
+     * Queue: ArrayBlockingQueue (5000 limit) - prevents OutOfMemory on huge traffic spikes.
+     * Rejection Policy: CallerRunsPolicy - slows down the publisher (backpressure) if the queue is full.
      */
     @Bean(name = "channelDispatchExecutor")
     public ExecutorService channelDispatchExecutor() {
-        return Executors.newVirtualThreadPerTaskExecutor();
+        return new ThreadPoolExecutor(
+                50, 
+                50, 
+                0L, 
+                TimeUnit.MILLISECONDS,
+                new ArrayBlockingQueue<>(5000),
+                new ThreadPoolExecutor.CallerRunsPolicy()
+        );
     }
 }

@@ -9,7 +9,7 @@ This skill was used by the Antigravity AI to generate the Multi-tenant Notificat
 
 ## Architectural Rules Followed
 
-1.  **Concurrency**: Use Java 21 Virtual Threads (`spring.threads.virtual.enabled=true`) for high-throughput, blocking I/O (database, external API calls).
+1.  **Concurrency**: Implemented exactly as requested: "bounded worker pools" via `ThreadPoolExecutor` with a strict `ArrayBlockingQueue` and `CallerRunsPolicy` to enforce system-wide concurrency limits and prevent OutOfMemory crashes under massive load.
 2.  **Design Patterns**:
     *   **Chain of Responsibility**: Used in `NotificationPipeline` to process validation, tenant status checks, idempotency, rate-limiting, and template rendering sequentially.
     *   **Strategy Pattern**: Used via `ChannelDispatcher` interface and its concrete implementations (Email, SMS, Push, In-App).
