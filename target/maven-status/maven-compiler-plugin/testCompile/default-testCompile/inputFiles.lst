@@ -1,4 +1,7 @@
 /Users/rahul.jain/Projects/notification-service/src/test/java/com/notificationservice/NotificationIntegrationTest.java
+/Users/rahul.jain/Projects/notification-service/src/test/java/com/notificationservice/channel/DispatchersTest.java
+/Users/rahul.jain/Projects/notification-service/src/test/java/com/notificationservice/controller/NotificationControllerTest.java
+/Users/rahul.jain/Projects/notification-service/src/test/java/com/notificationservice/controller/OtherControllersTest.java
 /Users/rahul.jain/Projects/notification-service/src/test/java/com/notificationservice/pipeline/DispatchHandlerTest.java
 /Users/rahul.jain/Projects/notification-service/src/test/java/com/notificationservice/pipeline/IdempotencyHandlerTest.java
 /Users/rahul.jain/Projects/notification-service/src/test/java/com/notificationservice/pipeline/RateLimitHandlerTest.java
@@ -6,4 +9,9 @@
 /Users/rahul.jain/Projects/notification-service/src/test/java/com/notificationservice/pipeline/ValidationHandlerTest.java
 /Users/rahul.jain/Projects/notification-service/src/test/java/com/notificationservice/ratelimit/BucketRateLimiterTest.java
 /Users/rahul.jain/Projects/notification-service/src/test/java/com/notificationservice/scheduler/NotificationSchedulerTest.java
+/Users/rahul.jain/Projects/notification-service/src/test/java/com/notificationservice/service/AuthServiceTest.java
+/Users/rahul.jain/Projects/notification-service/src/test/java/com/notificationservice/service/ChannelConfigServiceTest.java
 /Users/rahul.jain/Projects/notification-service/src/test/java/com/notificationservice/service/NotificationServiceTest.java
+/Users/rahul.jain/Projects/notification-service/src/test/java/com/notificationservice/service/ReportServiceTest.java
+/Users/rahul.jain/Projects/notification-service/src/test/java/com/notificationservice/service/TemplateServiceTest.java
+/Users/rahul.jain/Projects/notification-service/src/test/java/com/notificationservice/service/TenantServiceTest.java

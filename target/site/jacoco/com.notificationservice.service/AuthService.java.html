@@ -20,23 +20,23 @@ public class AuthService {
     private final JwtUtil jwtUtil;
 
     public AuthResponse login(LoginRequest req) {
-<span class="nc" id="L23">        User user = userRepository.findByEmail(req.getEmail())</span>
-<span class="nc" id="L24">                .filter(u -&gt; u.isEnabled())</span>
-<span class="nc" id="L25">                .orElseThrow(() -&gt; new BadCredentialsException(&quot;Invalid credentials&quot;));</span>
+<span class="fc" id="L23">        User user = userRepository.findByEmail(req.getEmail())</span>
+<span class="fc" id="L24">                .filter(u -&gt; u.isEnabled())</span>
+<span class="pc" id="L25">                .orElseThrow(() -&gt; new BadCredentialsException(&quot;Invalid credentials&quot;));</span>
 
-<span class="nc bnc" id="L27" title="All 2 branches missed.">        if (!passwordEncoder.matches(req.getPassword(), user.getPasswordHash())) {</span>
-<span class="nc" id="L28">            throw new BadCredentialsException(&quot;Invalid credentials&quot;);</span>
+<span class="fc bfc" id="L27" title="All 2 branches covered.">        if (!passwordEncoder.matches(req.getPassword(), user.getPasswordHash())) {</span>
+<span class="fc" id="L28">            throw new BadCredentialsException(&quot;Invalid credentials&quot;);</span>
         }
 
-<span class="nc" id="L31">        UserPrincipal principal = new UserPrincipal(user);</span>
-<span class="nc" id="L32">        return AuthResponse.builder()</span>
-<span class="nc" id="L33">                .accessToken(jwtUtil.generateToken(principal))</span>
-<span class="nc" id="L34">                .refreshToken(jwtUtil.generateRefreshToken(principal))</span>
-<span class="nc" id="L35">                .tokenType(&quot;Bearer&quot;)</span>
-<span class="nc" id="L36">                .expiresIn(86400)</span>
-<span class="nc" id="L37">                .email(user.getEmail())</span>
-<span class="nc" id="L38">                .role(user.getRole().name())</span>
-<span class="nc" id="L39">                .build();</span>
+<span class="fc" id="L31">        UserPrincipal principal = new UserPrincipal(user);</span>
+<span class="fc" id="L32">        return AuthResponse.builder()</span>
+<span class="fc" id="L33">                .accessToken(jwtUtil.generateToken(principal))</span>
+<span class="fc" id="L34">                .refreshToken(jwtUtil.generateRefreshToken(principal))</span>
+<span class="fc" id="L35">                .tokenType(&quot;Bearer&quot;)</span>
+<span class="fc" id="L36">                .expiresIn(86400)</span>
+<span class="fc" id="L37">                .email(user.getEmail())</span>
+<span class="fc" id="L38">                .role(user.getRole().name())</span>
+<span class="fc" id="L39">                .build();</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

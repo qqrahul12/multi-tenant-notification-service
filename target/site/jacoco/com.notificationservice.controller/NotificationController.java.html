@@ -37,12 +37,12 @@ public class NotificationController {
     @Operation(summary = &quot;Send or schedule a single notification (supports idempotency)&quot;)
     public ResponseEntity&lt;ApiResponse&lt;NotificationResponse&gt;&gt; send(
             @Valid @RequestBody SendNotificationRequest req) {
-<span class="nc" id="L40">        UUID tenantId = securityHelper.getCurrentTenantId();</span>
-<span class="nc" id="L41">        UUID userId = securityHelper.getCurrentUserId();</span>
-<span class="nc" id="L42">        NotificationResponse response = notificationService.send(tenantId, userId, req);</span>
+<span class="fc" id="L40">        UUID tenantId = securityHelper.getCurrentTenantId();</span>
+<span class="fc" id="L41">        UUID userId = securityHelper.getCurrentUserId();</span>
+<span class="fc" id="L42">        NotificationResponse response = notificationService.send(tenantId, userId, req);</span>
         
-<span class="nc bnc" id="L44" title="All 2 branches missed.">        HttpStatus status = response.isDuplicate() ? HttpStatus.OK : HttpStatus.CREATED;</span>
-<span class="nc" id="L45">        return ResponseEntity.status(status).body(ApiResponse.success(response));</span>
+<span class="fc bfc" id="L44" title="All 2 branches covered.">        HttpStatus status = response.isDuplicate() ? HttpStatus.OK : HttpStatus.CREATED;</span>
+<span class="fc" id="L45">        return ResponseEntity.status(status).body(ApiResponse.success(response));</span>
     }
 
     @PostMapping(&quot;/bulk&quot;)

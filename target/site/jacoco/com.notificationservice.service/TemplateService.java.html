@@ -22,19 +22,19 @@ public class TemplateService {
 
     @Transactional
     public NotificationTemplate createTemplate(UUID tenantId, CreateTemplateRequest req) {
-<span class="nc bnc" id="L25" title="All 2 branches missed.">        if (templateRepository.existsByTenantIdAndNameAndChannel(tenantId, req.getName(), req.getChannel())) {</span>
+<span class="pc bpc" id="L25" title="1 of 2 branches missed.">        if (templateRepository.existsByTenantIdAndNameAndChannel(tenantId, req.getName(), req.getChannel())) {</span>
 <span class="nc" id="L26">            throw new IllegalArgumentException(</span>
 <span class="nc" id="L27">                    &quot;Template with name '&quot; + req.getName() + &quot;' and channel '&quot; + req.getChannel() +</span>
                     &quot;' already exists for this tenant.&quot;);
         }
-<span class="nc" id="L30">        NotificationTemplate template = NotificationTemplate.builder()</span>
-<span class="nc" id="L31">                .tenantId(tenantId)</span>
-<span class="nc" id="L32">                .name(req.getName())</span>
-<span class="nc" id="L33">                .channel(req.getChannel())</span>
-<span class="nc" id="L34">                .subject(req.getSubject())</span>
-<span class="nc" id="L35">                .bodyTemplate(req.getBodyTemplate())</span>
-<span class="nc" id="L36">                .build();</span>
-<span class="nc" id="L37">        return templateRepository.save(template);</span>
+<span class="fc" id="L30">        NotificationTemplate template = NotificationTemplate.builder()</span>
+<span class="fc" id="L31">                .tenantId(tenantId)</span>
+<span class="fc" id="L32">                .name(req.getName())</span>
+<span class="fc" id="L33">                .channel(req.getChannel())</span>
+<span class="fc" id="L34">                .subject(req.getSubject())</span>
+<span class="fc" id="L35">                .bodyTemplate(req.getBodyTemplate())</span>
+<span class="fc" id="L36">                .build();</span>
+<span class="fc" id="L37">        return templateRepository.save(template);</span>
     }
 
     @Transactional(readOnly = true)

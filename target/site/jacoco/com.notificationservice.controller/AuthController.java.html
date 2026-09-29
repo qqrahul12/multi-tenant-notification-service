@@ -22,8 +22,8 @@ public class AuthController {
     @PostMapping(&quot;/login&quot;)
     @Operation(summary = &quot;Login and get JWT tokens&quot;)
     public ResponseEntity&lt;ApiResponse&lt;AuthResponse&gt;&gt; login(@Valid @RequestBody LoginRequest req) {
-<span class="nc" id="L25">        AuthResponse response = authService.login(req);</span>
-<span class="nc" id="L26">        return ResponseEntity.ok(ApiResponse.success(&quot;Login successful&quot;, response));</span>
+<span class="fc" id="L25">        AuthResponse response = authService.login(req);</span>
+<span class="fc" id="L26">        return ResponseEntity.ok(ApiResponse.success(&quot;Login successful&quot;, response));</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

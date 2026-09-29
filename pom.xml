@@ -163,6 +163,16 @@
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
                 <version>0.8.12</version>
+                <configuration>
+                    <excludes>
+                        <exclude>**/config/**</exclude>
+                        <exclude>**/exception/**</exclude>
+                        <exclude>**/security/**</exclude>
+                        <exclude>**/event/**</exclude>
+                        <exclude>**/domain/**</exclude>
+                        <exclude>**/dto/**</exclude>
+                    </excludes>
+                </configuration>
                 <executions>
                     <execution>
                         <goals>

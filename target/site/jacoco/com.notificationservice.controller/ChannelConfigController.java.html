@@ -32,16 +32,16 @@ public class ChannelConfigController {
     @Operation(summary = &quot;Upsert channel configuration (EMAIL, SMS, PUSH, IN_APP)&quot;)
     public ResponseEntity&lt;ApiResponse&lt;NotificationChannelConfig&gt;&gt; upsert(
             @Valid @RequestBody UpsertChannelConfigRequest req) {
-<span class="nc" id="L35">        UUID tenantId = securityHelper.getCurrentTenantId();</span>
-<span class="nc" id="L36">        return ResponseEntity.ok(ApiResponse.success(channelConfigService.upsert(tenantId, req)));</span>
+<span class="fc" id="L35">        UUID tenantId = securityHelper.getCurrentTenantId();</span>
+<span class="fc" id="L36">        return ResponseEntity.ok(ApiResponse.success(channelConfigService.upsert(tenantId, req)));</span>
     }
 
     @GetMapping
     @PreAuthorize(&quot;hasRole('TENANT_ADMIN')&quot;)
     @Operation(summary = &quot;List all channel configs for the current tenant&quot;)
     public ResponseEntity&lt;ApiResponse&lt;List&lt;NotificationChannelConfig&gt;&gt;&gt; list() {
-<span class="nc" id="L43">        UUID tenantId = securityHelper.getCurrentTenantId();</span>
-<span class="nc" id="L44">        return ResponseEntity.ok(ApiResponse.success(channelConfigService.listConfigs(tenantId)));</span>
+<span class="fc" id="L43">        UUID tenantId = securityHelper.getCurrentTenantId();</span>
+<span class="fc" id="L44">        return ResponseEntity.ok(ApiResponse.success(channelConfigService.listConfigs(tenantId)));</span>
     }
 
     @GetMapping(&quot;/{channel}&quot;)

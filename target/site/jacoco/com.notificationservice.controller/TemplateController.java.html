@@ -34,9 +34,9 @@ public class TemplateController {
     @Operation(summary = &quot;Create a notification template with {{variable}} support&quot;)
     public ResponseEntity&lt;ApiResponse&lt;NotificationTemplate&gt;&gt; create(
             @Valid @RequestBody CreateTemplateRequest req) {
-<span class="nc" id="L37">        UUID tenantId = securityHelper.getCurrentTenantId();</span>
-<span class="nc" id="L38">        return ResponseEntity.status(HttpStatus.CREATED)</span>
-<span class="nc" id="L39">                .body(ApiResponse.success(templateService.createTemplate(tenantId, req)));</span>
+<span class="fc" id="L37">        UUID tenantId = securityHelper.getCurrentTenantId();</span>
+<span class="fc" id="L38">        return ResponseEntity.status(HttpStatus.CREATED)</span>
+<span class="fc" id="L39">                .body(ApiResponse.success(templateService.createTemplate(tenantId, req)));</span>
     }
 
     @GetMapping
@@ -45,9 +45,9 @@ public class TemplateController {
     public ResponseEntity&lt;ApiResponse&lt;Page&lt;NotificationTemplate&gt;&gt;&gt; list(
             @RequestParam(required = false) TemplateStatus status,
             Pageable pageable) {
-<span class="nc" id="L48">        UUID tenantId = securityHelper.getCurrentTenantId();</span>
-<span class="nc" id="L49">        return ResponseEntity.ok(ApiResponse.success(</span>
-<span class="nc" id="L50">                templateService.listTemplates(tenantId, status, pageable)));</span>
+<span class="fc" id="L48">        UUID tenantId = securityHelper.getCurrentTenantId();</span>
+<span class="fc" id="L49">        return ResponseEntity.ok(ApiResponse.success(</span>
+<span class="fc" id="L50">                templateService.listTemplates(tenantId, status, pageable)));</span>
     }
 
     @GetMapping(&quot;/{id}&quot;)

@@ -12,15 +12,15 @@ import lombok.extern.slf4j.Slf4j;
  * Subclasses implement only the provider-specific send logic.
  * Logging, error normalisation, and provider response handling live here.
  */
-<span class="nc" id="L15">@Slf4j</span>
-<span class="nc" id="L16">public abstract class AbstractChannelDispatcher implements ChannelDispatcher {</span>
+<span class="fc" id="L15">@Slf4j</span>
+<span class="fc" id="L16">public abstract class AbstractChannelDispatcher implements ChannelDispatcher {</span>
 
     @Override
     public final void dispatch(NotificationRequest request) throws Exception {
-<span class="nc" id="L20">        preDispatch(request);</span>
+<span class="fc" id="L20">        preDispatch(request);</span>
         try {
-<span class="nc" id="L22">            String providerResponse = doSend(request);</span>
-<span class="nc" id="L23">            postDispatch(request, providerResponse);</span>
+<span class="fc" id="L22">            String providerResponse = doSend(request);</span>
+<span class="fc" id="L23">            postDispatch(request, providerResponse);</span>
 <span class="nc" id="L24">        } catch (TransientChannelException e) {</span>
 <span class="nc" id="L25">            log.warn(&quot;[{}] Transient failure for notificationId={}: {}&quot;,</span>
 <span class="nc" id="L26">                    getSupportedChannel(), request.getId(), e.getMessage());</span>
@@ -29,8 +29,8 @@ import lombok.extern.slf4j.Slf4j;
 <span class="nc" id="L29">            log.error(&quot;[{}] Unexpected failure for notificationId={}: {}&quot;,</span>
 <span class="nc" id="L30">                    getSupportedChannel(), request.getId(), e.getMessage(), e);</span>
 <span class="nc" id="L31">            throw new TransientChannelException(&quot;Unexpected dispatch error&quot;, e);</span>
-<span class="nc" id="L32">        }</span>
-<span class="nc" id="L33">    }</span>
+<span class="fc" id="L32">        }</span>
+<span class="fc" id="L33">    }</span>
 
     /**
      * Variant step — subclasses implement actual sending logic.
@@ -39,19 +39,19 @@ import lombok.extern.slf4j.Slf4j;
     protected abstract String doSend(NotificationRequest request) throws Exception;
 
     private void preDispatch(NotificationRequest request) {
-<span class="nc" id="L42">        log.info(&quot;[{}] Dispatching notificationId={} to recipient={}&quot;,</span>
-<span class="nc" id="L43">                getSupportedChannel(), request.getId(),</span>
-<span class="nc" id="L44">                maskRecipient(request.getRecipientAddress()));</span>
-<span class="nc" id="L45">    }</span>
+<span class="fc" id="L42">        log.info(&quot;[{}] Dispatching notificationId={} to recipient={}&quot;,</span>
+<span class="fc" id="L43">                getSupportedChannel(), request.getId(),</span>
+<span class="fc" id="L44">                maskRecipient(request.getRecipientAddress()));</span>
+<span class="fc" id="L45">    }</span>
 
     private void postDispatch(NotificationRequest request, String providerResponse) {
-<span class="nc" id="L48">        log.info(&quot;[{}] Successfully dispatched notificationId={} providerResponse={}&quot;,</span>
-<span class="nc" id="L49">                getSupportedChannel(), request.getId(), providerResponse);</span>
-<span class="nc" id="L50">    }</span>
+<span class="fc" id="L48">        log.info(&quot;[{}] Successfully dispatched notificationId={} providerResponse={}&quot;,</span>
+<span class="fc" id="L49">                getSupportedChannel(), request.getId(), providerResponse);</span>
+<span class="fc" id="L50">    }</span>
 
     private String maskRecipient(String recipient) {
-<span class="nc bnc" id="L53" title="All 4 branches missed.">        if (recipient == null || recipient.length() &lt; 4) return &quot;***&quot;;</span>
-<span class="nc" id="L54">        return recipient.substring(0, 3) + &quot;***&quot;;</span>
+<span class="pc bpc" id="L53" title="1 of 4 branches missed.">        if (recipient == null || recipient.length() &lt; 4) return &quot;***&quot;;</span>
+<span class="fc" id="L54">        return recipient.substring(0, 3) + &quot;***&quot;;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

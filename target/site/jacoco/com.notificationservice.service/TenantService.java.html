@@ -23,7 +23,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-<span class="nc" id="L26">@Slf4j</span>
+<span class="fc" id="L26">@Slf4j</span>
 public class TenantService {
 
     private final TenantRepository tenantRepository;
@@ -32,14 +32,14 @@ public class TenantService {
 
     @Transactional
     public TenantResponse createTenant(CreateTenantRequest req) {
-<span class="nc bnc" id="L35" title="All 2 branches missed.">        if (tenantRepository.existsBySlug(req.getSlug())) {</span>
-<span class="nc" id="L36">            throw new IllegalArgumentException(&quot;Tenant slug already exists: &quot; + req.getSlug());</span>
+<span class="fc bfc" id="L35" title="All 2 branches covered.">        if (tenantRepository.existsBySlug(req.getSlug())) {</span>
+<span class="fc" id="L36">            throw new IllegalArgumentException(&quot;Tenant slug already exists: &quot; + req.getSlug());</span>
         }
-<span class="nc" id="L38">        Tenant tenant = Tenant.builder()</span>
-<span class="nc" id="L39">                .name(req.getName())</span>
-<span class="nc" id="L40">                .slug(req.getSlug())</span>
-<span class="nc" id="L41">                .build();</span>
-<span class="nc" id="L42">        return TenantResponse.from(tenantRepository.save(tenant));</span>
+<span class="fc" id="L38">        Tenant tenant = Tenant.builder()</span>
+<span class="fc" id="L39">                .name(req.getName())</span>
+<span class="fc" id="L40">                .slug(req.getSlug())</span>
+<span class="fc" id="L41">                .build();</span>
+<span class="fc" id="L42">        return TenantResponse.from(tenantRepository.save(tenant));</span>
     }
 
     @Transactional(readOnly = true)
@@ -58,12 +58,12 @@ public class TenantService {
     @Transactional
     @CacheEvict(value = &quot;tenants&quot;, key = &quot;#tenantId&quot;)
     public TenantResponse updateStatus(UUID tenantId, TenantStatus newStatus) {
-<span class="nc" id="L61">        Tenant tenant = tenantRepository.findById(tenantId)</span>
-<span class="nc" id="L62">                .orElseThrow(() -&gt; new TenantNotFoundException(&quot;Tenant not found: &quot; + tenantId));</span>
-<span class="nc" id="L63">        tenant.setStatus(newStatus);</span>
-<span class="nc" id="L64">        Tenant saved = tenantRepository.save(tenant);</span>
-<span class="nc" id="L65">        log.info(&quot;Tenant {} status changed to {}&quot;, tenantId, newStatus);</span>
-<span class="nc" id="L66">        return TenantResponse.from(saved);</span>
+<span class="fc" id="L61">        Tenant tenant = tenantRepository.findById(tenantId)</span>
+<span class="pc" id="L62">                .orElseThrow(() -&gt; new TenantNotFoundException(&quot;Tenant not found: &quot; + tenantId));</span>
+<span class="fc" id="L63">        tenant.setStatus(newStatus);</span>
+<span class="fc" id="L64">        Tenant saved = tenantRepository.save(tenant);</span>
+<span class="fc" id="L65">        log.info(&quot;Tenant {} status changed to {}&quot;, tenantId, newStatus);</span>
+<span class="fc" id="L66">        return TenantResponse.from(saved);</span>
     }
 
     @Transactional(readOnly = true)

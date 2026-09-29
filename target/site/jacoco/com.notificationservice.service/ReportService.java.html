@@ -15,36 +15,36 @@ public class ReportService {
 
     @Transactional(readOnly = true)
     public Map&lt;String, Object&gt; getSummary(UUID tenantId, Instant from, Instant to) {
-<span class="nc" id="L18">        List&lt;Object[]&gt; byStatus  = requestRepository.countByStatusForTenant(tenantId, from, to);</span>
-<span class="nc" id="L19">        List&lt;Object[]&gt; byChannel = requestRepository.countByChannelAndStatusForTenant(tenantId, from, to);</span>
+<span class="fc" id="L18">        List&lt;Object[]&gt; byStatus  = requestRepository.countByStatusForTenant(tenantId, from, to);</span>
+<span class="fc" id="L19">        List&lt;Object[]&gt; byChannel = requestRepository.countByChannelAndStatusForTenant(tenantId, from, to);</span>
 
-<span class="nc" id="L21">        Map&lt;String, Long&gt; statusCounts  = new LinkedHashMap&lt;&gt;();</span>
-<span class="nc" id="L22">        Map&lt;String, Map&lt;String, Long&gt;&gt; channelBreakdown = new LinkedHashMap&lt;&gt;();</span>
+<span class="fc" id="L21">        Map&lt;String, Long&gt; statusCounts  = new LinkedHashMap&lt;&gt;();</span>
+<span class="fc" id="L22">        Map&lt;String, Map&lt;String, Long&gt;&gt; channelBreakdown = new LinkedHashMap&lt;&gt;();</span>
 
-<span class="nc" id="L24">        long total = 0;</span>
-<span class="nc bnc" id="L25" title="All 2 branches missed.">        for (Object[] row : byStatus) {</span>
-<span class="nc" id="L26">            String status = row[0].toString();</span>
-<span class="nc" id="L27">            long count = ((Number) row[1]).longValue();</span>
-<span class="nc" id="L28">            statusCounts.put(status, count);</span>
-<span class="nc" id="L29">            total += count;</span>
-<span class="nc" id="L30">        }</span>
+<span class="fc" id="L24">        long total = 0;</span>
+<span class="fc bfc" id="L25" title="All 2 branches covered.">        for (Object[] row : byStatus) {</span>
+<span class="fc" id="L26">            String status = row[0].toString();</span>
+<span class="fc" id="L27">            long count = ((Number) row[1]).longValue();</span>
+<span class="fc" id="L28">            statusCounts.put(status, count);</span>
+<span class="fc" id="L29">            total += count;</span>
+<span class="fc" id="L30">        }</span>
 
-<span class="nc bnc" id="L32" title="All 2 branches missed.">        for (Object[] row : byChannel) {</span>
-<span class="nc" id="L33">            String channel = row[0].toString();</span>
-<span class="nc" id="L34">            String status  = row[1].toString();</span>
-<span class="nc" id="L35">            long   count   = ((Number) row[2]).longValue();</span>
-<span class="nc" id="L36">            channelBreakdown.computeIfAbsent(channel, k -&gt; new LinkedHashMap&lt;&gt;()).put(status, count);</span>
-<span class="nc" id="L37">        }</span>
+<span class="fc bfc" id="L32" title="All 2 branches covered.">        for (Object[] row : byChannel) {</span>
+<span class="fc" id="L33">            String channel = row[0].toString();</span>
+<span class="fc" id="L34">            String status  = row[1].toString();</span>
+<span class="fc" id="L35">            long   count   = ((Number) row[2]).longValue();</span>
+<span class="fc" id="L36">            channelBreakdown.computeIfAbsent(channel, k -&gt; new LinkedHashMap&lt;&gt;()).put(status, count);</span>
+<span class="fc" id="L37">        }</span>
 
-<span class="nc" id="L39">        long delivered = statusCounts.getOrDefault(&quot;DELIVERED&quot;, 0L);</span>
-<span class="nc bnc" id="L40" title="All 2 branches missed.">        double deliveryRate = total &gt; 0 ? (double) delivered / total * 100 : 0.0;</span>
+<span class="fc" id="L39">        long delivered = statusCounts.getOrDefault(&quot;DELIVERED&quot;, 0L);</span>
+<span class="pc bpc" id="L40" title="1 of 2 branches missed.">        double deliveryRate = total &gt; 0 ? (double) delivered / total * 100 : 0.0;</span>
 
-<span class="nc" id="L42">        return Map.of(</span>
+<span class="fc" id="L42">        return Map.of(</span>
                 &quot;tenantId&quot;,        tenantId,
                 &quot;from&quot;,            from,
                 &quot;to&quot;,              to,
-<span class="nc" id="L46">                &quot;total&quot;,           total,</span>
-<span class="nc" id="L47">                &quot;deliveryRate&quot;,    String.format(&quot;%.2f%%&quot;, deliveryRate),</span>
+<span class="fc" id="L46">                &quot;total&quot;,           total,</span>
+<span class="fc" id="L47">                &quot;deliveryRate&quot;,    String.format(&quot;%.2f%%&quot;, deliveryRate),</span>
                 &quot;byStatus&quot;,        statusCounts,
                 &quot;byChannel&quot;,       channelBreakdown
         );

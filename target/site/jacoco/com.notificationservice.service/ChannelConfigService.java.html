@@ -21,18 +21,18 @@ public class ChannelConfigService {
     @Transactional
     @CacheEvict(value = &quot;channelConfigs&quot;, key = &quot;#tenantId&quot;)
     public NotificationChannelConfig upsert(UUID tenantId, UpsertChannelConfigRequest req) {
-<span class="nc" id="L24">        NotificationChannelConfig config = configRepository</span>
-<span class="nc" id="L25">                .findByTenantIdAndChannel(tenantId, req.getChannel())</span>
-<span class="nc" id="L26">                .orElseGet(() -&gt; NotificationChannelConfig.builder()</span>
-<span class="nc" id="L27">                        .tenantId(tenantId)</span>
-<span class="nc" id="L28">                        .channel(req.getChannel())</span>
-<span class="nc" id="L29">                        .build());</span>
+<span class="fc" id="L24">        NotificationChannelConfig config = configRepository</span>
+<span class="fc" id="L25">                .findByTenantIdAndChannel(tenantId, req.getChannel())</span>
+<span class="fc" id="L26">                .orElseGet(() -&gt; NotificationChannelConfig.builder()</span>
+<span class="fc" id="L27">                        .tenantId(tenantId)</span>
+<span class="fc" id="L28">                        .channel(req.getChannel())</span>
+<span class="fc" id="L29">                        .build());</span>
 
-<span class="nc bnc" id="L31" title="All 2 branches missed.">        if (req.getConfig() != null) {</span>
-<span class="nc" id="L32">            config.setConfig(req.getConfig());</span>
+<span class="pc bpc" id="L31" title="1 of 2 branches missed.">        if (req.getConfig() != null) {</span>
+<span class="fc" id="L32">            config.setConfig(req.getConfig());</span>
         }
-<span class="nc" id="L34">        config.setEnabled(req.isEnabled());</span>
-<span class="nc" id="L35">        return configRepository.save(config);</span>
+<span class="fc" id="L34">        config.setEnabled(req.isEnabled());</span>
+<span class="fc" id="L35">        return configRepository.save(config);</span>
     }
 
     @Transactional(readOnly = true)
@@ -43,8 +43,8 @@ public class ChannelConfigService {
 
     @Transactional(readOnly = true)
     public NotificationChannelConfig getConfig(UUID tenantId, Channel channel) {
-<span class="nc" id="L46">        return configRepository.findByTenantIdAndChannel(tenantId, channel)</span>
-<span class="nc" id="L47">                .orElseThrow(() -&gt; new IllegalStateException(</span>
+<span class="fc" id="L46">        return configRepository.findByTenantIdAndChannel(tenantId, channel)</span>
+<span class="pc" id="L47">                .orElseThrow(() -&gt; new IllegalStateException(</span>
                         &quot;No config found for channel: &quot; + channel));
     }
 }

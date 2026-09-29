@@ -37,15 +37,15 @@ public class TenantController {
     @Operation(summary = &quot;Create a new tenant&quot;)
     public ResponseEntity&lt;ApiResponse&lt;TenantResponse&gt;&gt; createTenant(
             @Valid @RequestBody CreateTenantRequest req) {
-<span class="nc" id="L40">        return ResponseEntity.status(HttpStatus.CREATED)</span>
-<span class="nc" id="L41">                .body(ApiResponse.success(tenantService.createTenant(req)));</span>
+<span class="fc" id="L40">        return ResponseEntity.status(HttpStatus.CREATED)</span>
+<span class="fc" id="L41">                .body(ApiResponse.success(tenantService.createTenant(req)));</span>
     }
 
     @GetMapping
     @PreAuthorize(&quot;hasRole('PLATFORM_ADMIN')&quot;)
     @Operation(summary = &quot;List all tenants (paginated)&quot;)
     public ResponseEntity&lt;ApiResponse&lt;Page&lt;TenantResponse&gt;&gt;&gt; listTenants(Pageable pageable) {
-<span class="nc" id="L48">        return ResponseEntity.ok(ApiResponse.success(tenantService.listTenants(pageable)));</span>
+<span class="fc" id="L48">        return ResponseEntity.ok(ApiResponse.success(tenantService.listTenants(pageable)));</span>
     }
 
     @GetMapping(&quot;/{id}&quot;)
@@ -69,7 +69,7 @@ public class TenantController {
     @Operation(summary = &quot;Get all rate limit configs for a tenant&quot;)
     public ResponseEntity&lt;ApiResponse&lt;List&lt;TenantRateLimitConfig&gt;&gt;&gt; getRateLimits(
             @PathVariable UUID id) {
-<span class="nc" id="L72">        return ResponseEntity.ok(ApiResponse.success(tenantService.getRateLimitConfigs(id)));</span>
+<span class="fc" id="L72">        return ResponseEntity.ok(ApiResponse.success(tenantService.getRateLimitConfigs(id)));</span>
     }
 
     @PutMapping(&quot;/{id}/rate-limits&quot;)
