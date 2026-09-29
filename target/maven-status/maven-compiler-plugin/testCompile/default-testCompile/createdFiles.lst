@@ -12,6 +12,7 @@ com/notificationservice/service/ChannelConfigServiceTest.class
 com/notificationservice/controller/NotificationControllerTest.class
 com/notificationservice/pipeline/IdempotencyHandlerTest.class
 com/notificationservice/pipeline/TemplateRenderHandlerTest.class
+com/notificationservice/ApiIntegrationTest.class
 com/notificationservice/service/NotificationServiceTest.class
 com/notificationservice/pipeline/ValidationHandlerTest.class
 com/notificationservice/pipeline/DispatchHandlerTest.class

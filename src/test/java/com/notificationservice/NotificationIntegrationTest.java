@@ -145,4 +145,74 @@ class NotificationIntegrationTest {
         long count = requestRepository.count();
         assertEquals(1, count); // Only 1 record in DB
     }
+
+    @Test
+    void shouldSuccessfullyProcessSmsAndPush() {
+        NotificationChannelConfig smsConfig = NotificationChannelConfig.builder().tenantId(tenantId).channel(Channel.SMS).enabled(true).build();
+        NotificationChannelConfig pushConfig = NotificationChannelConfig.builder().tenantId(tenantId).channel(Channel.PUSH).enabled(true).build();
+        channelConfigRepository.save(smsConfig);
+        channelConfigRepository.save(pushConfig);
+
+        NotificationTemplate smsTemplate = NotificationTemplate.builder().tenantId(tenantId).name("SMS").channel(Channel.SMS).bodyTemplate("SMS {{code}}").status(TemplateStatus.ACTIVE).build();
+        smsTemplate = templateRepository.save(smsTemplate);
+
+        SendNotificationRequest req = new SendNotificationRequest();
+        req.setTemplateId(smsTemplate.getId());
+        req.setChannel(Channel.SMS);
+        req.setRecipientAddress("+1234567890");
+        req.setVariables(Map.of("code", "999"));
+
+        NotificationResponse resp = notificationService.send(tenantId, userId, req);
+        NotificationRequest saved = requestRepository.findById(resp.getId()).orElseThrow();
+        assertEquals("SMS 999", saved.getRenderedBody());
+        assertEquals(Channel.SMS, saved.getChannel());
+    }
+
+    @Autowired private com.notificationservice.repository.TenantRateLimitConfigRepository rateLimitConfigRepository;
+
+    @Test
+    void shouldEnforceRateLimiting() {
+        // Set up rate limit config for Tenant (1 request per minute)
+        com.notificationservice.domain.TenantRateLimitConfig limitConfig = com.notificationservice.domain.TenantRateLimitConfig.builder()
+                .tenantId(tenantId)
+                .limitPerMinute(1)
+                .burstCapacity(1)
+                .build();
+        
+        rateLimitConfigRepository.save(limitConfig);
+
+        SendNotificationRequest req1 = new SendNotificationRequest();
+        req1.setTemplateId(templateId);
+        req1.setChannel(Channel.EMAIL);
+        req1.setRecipientAddress("test1@test.com");
+
+        SendNotificationRequest req2 = new SendNotificationRequest();
+        req2.setTemplateId(templateId);
+        req2.setChannel(Channel.EMAIL);
+        req2.setRecipientAddress("test2@test.com");
+
+        // First request should pass
+        NotificationResponse resp1 = notificationService.send(tenantId, userId, req1);
+        assertEquals(NotificationStatus.QUEUED, resp1.getStatus());
+
+        // Second request should fail with rate limit exception
+        assertThrows(com.notificationservice.exception.RateLimitExceededException.class, () -> {
+            notificationService.send(tenantId, userId, req2);
+        });
+    }
+
+    @Test
+    void shouldQueueScheduledNotifications() {
+        SendNotificationRequest req = new SendNotificationRequest();
+        req.setTemplateId(templateId);
+        req.setChannel(Channel.EMAIL);
+        req.setRecipientAddress("future@test.com");
+        req.setScheduledAt(java.time.Instant.now().plusSeconds(3600).toString()); // 1 hour in future
+
+        NotificationResponse resp = notificationService.send(tenantId, userId, req);
+        assertEquals(NotificationStatus.QUEUED, resp.getStatus());
+        
+        NotificationRequest saved = requestRepository.findById(resp.getId()).orElseThrow();
+        assertNotNull(saved.getScheduledAt());
+    }
 }
