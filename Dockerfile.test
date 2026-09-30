@@ -1,0 +1,13 @@
+FROM maven:3.9.6-eclipse-temurin-21-alpine
+
+WORKDIR /workspace
+
+# Cache dependencies first
+COPY pom.xml .
+RUN mvn dependency:go-offline
+
+# Copy source code
+COPY src ./src
+
+# Run tests
+CMD ["mvn", "clean", "test"]

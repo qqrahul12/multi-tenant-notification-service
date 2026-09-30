@@ -1,0 +1,113 @@
+# ===========================
+# Compiled Output
+# ===========================
+target/
+*.class
+*.jar
+*.war
+*.ear
+*.nar
+
+# ===========================
+# Maven
+# ===========================
+.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+# ===========================
+# Spring Boot
+# ===========================
+*.pid
+spring-shell.log
+
+# ===========================
+# IntelliJ IDEA
+# ===========================
+.idea/
+*.iws
+*.iml
+*.ipr
+out/
+.idea_modules/
+
+# ===========================
+# VS Code
+# ===========================
+.vscode/
+*.code-workspace
+
+# ===========================
+# Eclipse
+# ===========================
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings/
+.springBeans
+.sts4-cache
+
+# ===========================
+# NetBeans
+# ===========================
+nbproject/private/
+nbbuild/
+dist/
+nbdist/
+.nb-gradle/
+build/
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+# ===========================
+# macOS
+# ===========================
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+.fseventsd
+
+# ===========================
+# Environment & Secrets
+# ===========================
+.env
+.env.*
+application-local.yml
+application-local.properties
+application-secret.yml
+*.pem
+*.p12
+*.jks
+*.keystore
+
+# ===========================
+# Logs
+# ===========================
+logs/
+*.log
+*.log.*
+
+# ===========================
+# Test artifacts
+# ===========================
+*.dump
+*.dumpstream
+surefire-reports/
+
+# ===========================
+# Docker
+# ===========================
+.docker/
+
+# ===========================
+# Scratch / temp files
+# ===========================
+refactor_modules.sh
+seed_test_data.sh
+full_service_test.sh
+GenHash.java
+GenHash.class
