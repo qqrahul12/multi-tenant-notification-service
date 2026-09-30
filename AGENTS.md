@@ -55,3 +55,23 @@ When a notification is sent, it passes through the `NotificationPipeline`:
 - `notification_requests` (Core table, indexed on `status` and `scheduled_at`)
 - `delivery_attempts` (Tracks every attempt, success or failure)
 - `audit_logs` (JSONB snapshots of state changes)
+
+## 4. AI Workflow & Skills Used
+
+This project was developed iteratively using the **Google Antigravity (AGY) Agent** (Gemini 3.1 Pro / Claude 3.5 Sonnet hybrid). 
+
+### 4.1 AI Workflow
+1. **Scoping & Setup:** The agent was provided with the raw PDF requirements. It iteratively split the problem into domain modeling, REST API definition, and pipeline architecture.
+2. **Iterative Implementation:**
+   - Multi-module Maven setup was driven by the agent.
+   - Flyway migrations were written sequentially by the agent to incrementally build the schema.
+   - Core pipeline (Chain of Responsibility) was scaffolded and refined via conversational prompts.
+3. **Refactoring & Bug Fixing:**
+   - The agent ran native terminal commands (`mvn test`) to identify compilation errors and failed tests, parsing stack traces to fix issues (e.g., resolving the PostgreSQL `DISTINCT FOR UPDATE` bug by rewriting to `EXISTS`).
+4. **Testing:** The agent generated unit tests and utilized `Testcontainers` / `GreenMail` for real SMTP and database integration tests.
+
+### 4.2 AI Agent Skills Utilized
+- **Terminal & Shell Execution:** Extensively used `run_command` to execute Maven builds, Git commands, and run Python scripts to parse assignment PDFs.
+- **Code Editing:** Used `replace_file_content` and `write_to_file` to precisely inject logic without rewriting entire classes (e.g., modifying `UserController.java` or `pom.xml`).
+- **File System Navigation:** Used `find`, `grep`, and `cat` to understand the codebase context (e.g., verifying `ThreadPoolExecutor` implementations across the project).
+- **Artifact Management:** Created and managed `progress_report.md` to track assignment completion status against the original prompt requirements.
