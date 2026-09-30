@@ -32,12 +32,16 @@ A scalable, robust, and idempotent multi-tenant notification service built with 
 Start the application and navigate to `http://localhost:8080/swagger-ui.html`. 
 The Swagger UI includes a built-in "Authorize" button to provide the JWT token (acquired via `/api/v1/auth/login`).
 
-## Architecture & Assumptions
+## Architecture & Meaningful Assumptions
 
-* **Entities:** Core models include Tenants, Users, Templates, Channel Configurations, Notification Requests, and Delivery Attempts.
-* **Worker Pools:** Channel dispatches are managed via a ThreadPoolExecutor backed by Java 21 Virtual Threads to meet the "bounded worker pool" requirement without thread starvation.
-* **In-App Channel:** Handled by broadcasting notifications over Redis Pub/Sub (`InAppChannelDispatcher`). A WebSocket frontend server can subscribe to this topic to push events directly to clients.
-* **Data Isolation:** All operations mandate a `tenantId` (derived automatically via JWT Security Context).
+As per the open-ended nature of the requirements, the following scoping decisions and assumptions were made:
+
+1. **Queueing / Scalability:** Assumed PostgreSQL with `SELECT ... FOR UPDATE SKIP LOCKED` combined with a `ThreadPoolExecutor` is sufficient for a robust database-backed task queue. We avoided bringing in Kafka or RabbitMQ to strictly adhere to the "Out of Scope: Distributed systems or microservices" instruction.
+2. **Worker Pools:** Channel dispatches are managed via a `ThreadPoolExecutor` (Core: 50, Queue: 5000, CallerRunsPolicy) backed by Java 21 Virtual Threads. This perfectly meets the "bounded worker pool" requirement by ensuring high concurrency while preventing out-of-memory errors on massive traffic spikes via backpressure.
+3. **In-App Channel:** Handled by broadcasting notifications over Redis Pub/Sub (`InAppChannelDispatcher`). We assume a lightweight WebSocket/SSE proxy would subscribe to this topic to push events directly to client browsers, keeping the "frontend" out of this service.
+4. **Data Isolation:** We opted for Logical Isolation (a `tenant_id` column on all tables) rather than schema-per-tenant, as it scales better for thousands of tenants while keeping migrations simple. All operations mandate a `tenantId` (derived automatically via JWT Security Context).
+5. **Recipient Management:** Assumed a centralized `users` table is the source of truth for contact points (email, phone, FCM device token).
+6. **Rate Limiting:** Assumed in-memory `Bucket4j` rate limiting is sufficient for per-tenant fairness.
 
 ## Getting Started
 
