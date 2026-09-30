@@ -18,7 +18,7 @@ import java.util.UUID;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest
+@SpringBootTest(classes = NotificationServiceApplication.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
 class ApiIntegrationTest {
 
@@ -31,13 +31,14 @@ class ApiIntegrationTest {
 
     @Autowired private com.notificationservice.repository.UserRepository userRepository;
     @Autowired private com.notificationservice.repository.TenantRepository tenantRepository;
-
     @Autowired private com.notificationservice.repository.NotificationRequestRepository requestRepository;
+    @Autowired private com.notificationservice.repository.AuditLogRepository auditLogRepository;
 
     @BeforeEach
     void setup() {
         requestRepository.deleteAll();
         userRepository.deleteAll();
+        auditLogRepository.deleteAll();
         tenantRepository.deleteAll();
 
         com.notificationservice.domain.Tenant tenant = com.notificationservice.domain.Tenant.builder()

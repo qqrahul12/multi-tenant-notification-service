@@ -15,10 +15,11 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
+@SpringBootTest(classes = NotificationServiceApplication.class, webEnvironment = SpringBootTest.WebEnvironment.NONE)
 class NotificationIntegrationTest {
 
     @Autowired private NotificationService notificationService;
+    @Autowired private AuditLogRepository auditLogRepository;
     @Autowired private TenantRepository tenantRepository;
     @Autowired private NotificationTemplateRepository templateRepository;
     @Autowired private NotificationChannelConfigRepository channelConfigRepository;
@@ -38,6 +39,7 @@ class NotificationIntegrationTest {
         channelConfigRepository.deleteAll();
         rateLimitConfigRepository.deleteAll();
         userRepository.deleteAll();
+        auditLogRepository.deleteAll();
         tenantRepository.deleteAll();
 
         // 1. Create Tenant

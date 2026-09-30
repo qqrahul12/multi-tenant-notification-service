@@ -49,12 +49,15 @@ public interface NotificationRequestRepository extends JpaRepository<Notificatio
      * and are due for retry.
      */
     @Query(value = """
-        SELECT DISTINCT nr.* FROM notification_requests nr
-        JOIN delivery_attempts da ON da.notification_request_id = nr.id
+        SELECT nr.* FROM notification_requests nr
         WHERE nr.status = 'QUEUED'
-          AND da.status = 'FAILURE'
-          AND da.next_retry_at <= :now
           AND nr.attempt_count < nr.max_attempts
+          AND EXISTS (
+              SELECT 1 FROM delivery_attempts da
+              WHERE da.notification_request_id = nr.id
+                AND da.status = 'FAILURE'
+                AND da.next_retry_at <= :now
+          )
         ORDER BY nr.priority DESC
         LIMIT :batchSize
         FOR UPDATE SKIP LOCKED

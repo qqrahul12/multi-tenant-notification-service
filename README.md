@@ -5,13 +5,14 @@ A scalable, robust, and idempotent multi-tenant notification service built with 
 ## Features
 
 *   **Multi-tenancy:** Strict data isolation per tenant across all APIs and data layers.
-*   **Virtual Threads:** Uses Java 21 Virtual Threads for high-throughput, non-blocking I/O during channel dispatch.
+*   **Channels:** Configurable dispatch across 4 channels (Email, SMS, Push, In-App).
+*   **Virtual Threads:** Uses Java 21 Virtual Threads for high-throughput, non-blocking I/O during channel dispatch via bounded worker pools.
 *   **Smart Rate Limiting:** In-memory Bucket4j rate limiting with fallback hierarchy (specific channel/priority -> channel -> global tenant -> default).
 *   **Idempotency:** Redis `SET NX` based idempotency to prevent duplicate notifications on client retries.
 *   **Reliable Delivery:** Exponential backoff retries for transient failures, tracked via `delivery_attempts`.
 *   **Scheduled Sends:** Scalable polling scheduler using PostgreSQL `SELECT FOR UPDATE SKIP LOCKED` to prevent duplicate dispatches across instances.
 *   **Templating:** Dynamic template rendering using `{{variable}}` substitution.
-*   **Role-Based Access Control:** JWT-based authentication with `PLATFORM_ADMIN` and `TENANT_ADMIN` roles.
+*   **Role-Based Access Control:** JWT-based authentication with `PLATFORM_ADMIN`, `TENANT_ADMIN`, and `USER` roles.
 *   **Auditing:** Async domain events trigger JSONB audit logging for full traceability of notification state changes.
 
 ## Tech Stack
@@ -26,18 +27,17 @@ A scalable, robust, and idempotent multi-tenant notification service built with 
 *   Swagger / Springdoc (API Documentation)
 *   Docker & Docker Compose
 
-## Design Patterns Used
+## API Documentation (Swagger)
 
-1.  **Strategy:** `ChannelDispatcher` interface for different notification channels.
-2.  **Factory:** `ChannelDispatcherFactory` provides the correct dispatcher at runtime.
-3.  **Template Method:** `AbstractChannelDispatcher` defines the dispatch skeleton.
-4.  **Chain of Responsibility:** `NotificationPipeline` with sequential validation, rate limit, idempotency, and dispatch handlers.
-5.  **Decorator:** `RetryAwareChannelDispatcher` adds retry logic transparently over standard dispatchers.
-6.  **State:** `NotificationStatus` manages valid lifecycle transitions.
-7.  **Observer:** `AuditLogEventListener` listens to domain events for async logging.
-8.  **Command:** `NotificationDispatchCommand` encapsulates dispatch requests for virtual thread execution.
-9.  **Builder:** Fluent object creation using Lombok `@Builder`.
-10. **Facade:** `NotificationService` provides a unified entry point for controllers.
+Start the application and navigate to `http://localhost:8080/swagger-ui.html`. 
+The Swagger UI includes a built-in "Authorize" button to provide the JWT token (acquired via `/api/v1/auth/login`).
+
+## Architecture & Assumptions
+
+* **Entities:** Core models include Tenants, Users, Templates, Channel Configurations, Notification Requests, and Delivery Attempts.
+* **Worker Pools:** Channel dispatches are managed via a ThreadPoolExecutor backed by Java 21 Virtual Threads to meet the "bounded worker pool" requirement without thread starvation.
+* **In-App Channel:** Handled by broadcasting notifications over Redis Pub/Sub (`InAppChannelDispatcher`). A WebSocket frontend server can subscribe to this topic to push events directly to clients.
+* **Data Isolation:** All operations mandate a `tenantId` (derived automatically via JWT Security Context).
 
 ## Getting Started
 
@@ -51,11 +51,8 @@ A scalable, robust, and idempotent multi-tenant notification service built with 
     ./mvnw spring-boot:run
     ```
 
-3.  **API Documentation (Swagger UI):**
-    Open `http://localhost:8080/swagger-ui.html` in your browser.
-
 ## Default Credentials
 
-A platform admin is created automatically by Flyway migrations:
+A platform admin is created automatically by Flyway migrations (`V9__seed_platform_admin.sql`):
 *   **Email:** `admin@platform.com`
-*   **Password:** `Admin@123`
+*   **Password:** `admin123`
